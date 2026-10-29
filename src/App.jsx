@@ -5,7 +5,7 @@ import POS from "./components/POS.jsx";
  * CONFIG
  * ===================================================================== */
 
-const API_DEFAULT = "http://127.0.0.1:8000";
+const API_DEFAULT = "http://michaelhyrax.alwaysdata.net/POS";
 
 const BUSINESS_TYPE_GROUPS = [
   {

@@ -5,7 +5,7 @@ import POS from "./components/POS.jsx";
  * CONFIG
  * ===================================================================== */
 
-const API_DEFAULT = "https://michaelhyrax.alwaysdata.net/POS";
+const API_DEFAULT = import.meta.env.VITE_API_BASE_URL || "https://michaelhyrax.alwaysdata.net/POS";
 
 const BUSINESS_TYPE_GROUPS = [
   {

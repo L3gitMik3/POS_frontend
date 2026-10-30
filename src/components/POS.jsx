@@ -16,6 +16,7 @@ export default function POS({ apiFetch, till, notify, onCompleted }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
+  const [quantityDrafts, setQuantityDrafts] = useState({});
   const [customer, setCustomer] = useState("");
   const [customerLookupState, setCustomerLookupState] = useState(null);
   const [customerLookupBusyPhone, setCustomerLookupBusyPhone] = useState("");
@@ -142,6 +143,15 @@ export default function POS({ apiFetch, till, notify, onCompleted }) {
     }
     setCart((current) => current.map((item) => item.product === id ? { ...item, quantity } : item).filter((item) => item.quantity > 0));
   };
+  const commitQtyDraft = (id) => {
+    const value = quantityDrafts[id];
+    if (value !== undefined && value !== "") setQty(id, value);
+    setQuantityDrafts((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+  };
   const removeLine = (id) => setCart((current) => current.filter((line) => line.product !== id));
   const clearCart = () => setCart([]);
 
@@ -236,7 +246,7 @@ export default function POS({ apiFetch, till, notify, onCompleted }) {
         {Number(customerLookup?.available_points || 0) > 0 && !redeeming && <button type="button" className="ghost small" onClick={() => setRedeeming(true)}>Redeem points</button>}
         {redeeming && <div className="pay-extra"><Field label={`Points to redeem (1 point = KSh 1; max ${Math.min(Number(customerLookup?.available_points || 0), Math.floor(totals.total))})`} type="number" min="1" max={Math.min(Number(customerLookup?.available_points || 0), Math.floor(totals.total))} step="1" value={redeemInput} onChange={(event) => setRedeemInput(event.target.value)} /><button type="button" className="ghost small" onClick={() => { setRedeeming(false); setRedeemInput(""); }}>Cancel redemption</button></div>}
         {!cart.length ? <p className="muted">Cart is empty. Tap products to add.</p> : (
-          <ul className="cart-list">{cart.map((line) => <li key={line.product} className="cart-line"><div className="cart-line-head"><strong>{line.name}</strong><button className="ghost small" onClick={() => removeLine(line.product)}>Remove</button></div><div className="cart-line-body"><div className="qty"><button onClick={() => setQty(line.product, line.quantity - 1)}>−</button><input type="number" min="1" value={line.quantity} onChange={(event) => setQty(line.product, event.target.value)} /><button onClick={() => setQty(line.product, line.quantity + 1)}>+</button></div><div className="cart-price">{money(line.unit_price * line.quantity)}</div></div></li>)}</ul>
+          <ul className="cart-list">{cart.map((line) => <li key={line.product} className="cart-line"><div className="cart-line-head"><strong>{line.name}</strong><button className="ghost small" onClick={() => removeLine(line.product)}>Remove</button></div><div className="cart-line-body"><div className="qty"><button onClick={() => setQty(line.product, line.quantity - 1)}>−</button><input type="number" min="1" value={quantityDrafts[line.product] ?? line.quantity} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [line.product]: event.target.value }))} onBlur={() => commitQtyDraft(line.product)} /><button onClick={() => setQty(line.product, line.quantity + 1)}>+</button></div><div className="cart-price">{money(line.unit_price * line.quantity)}</div></div></li>)}</ul>
         )}
         <div className="totals"><div><span>Subtotal</span><strong>{money(totals.subtotal)}</strong></div><div><span>Tax</span><strong>{money(totals.tax)}</strong></div>{loyaltyPointsToRedeem > 0 && <div><span>Loyalty points</span><strong>−{money(loyaltyPointsToRedeem)}</strong></div>}<div className="grand"><span>Total due</span><strong>{money(totalDue)}</strong></div></div>
         <div className="pay-methods"><button className={`pay-chip ${payMethod === "cash" ? "on" : ""}`} onClick={() => setPayMethod("cash")}>Cash</button><button className={`pay-chip ${payMethod === "mpesa" ? "on" : ""}`} onClick={() => setPayMethod("mpesa")}>M-Pesa</button></div>
